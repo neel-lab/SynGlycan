@@ -1,0 +1,41 @@
+MATLAB STRUCTURE -----------
+>> FROM GETMSDATA FUNCTION -
+- STANDARD INFORMATION -----
+-- scannum
+-- mslvl
+-- retime
+-- fragmode = accounts for EThcD and ETciD
+-- precursormz = selected ion m/z or monoisotopic m/z if select ion not specified, -2 if value non-existent
+-- allprecursormz = selected ion m/z,isolation window target m/z,Monoisotopic M/Z
+-- charge
+- ADDITIONAL INFORMATION ->> -1 values by default, replace with values if present/wanted
+-- peaksCount
+-- polarity
+-- scanType
+-- centroided
+-- deisotoped
+-- chargeDeconvoluted
+-- startMz
+-- endMz
+-- lowMz
+-- highMz
+-- basePeakMz
+-- basePeakIntensity
+-- totIonCurrent
+-- precursorScanNum = -1 for MS1 spectra
+-- ionisationEnergy
+-- precision
+-- spectra
+-- filterLine
+>> FROM DEFAULTMONOISO -
+- PRECURSOR VALUES -----
+-- originialprecursormz = original precursor m/z values
+-- precursormz = value from averagine or -1
+>> FROM QUANTITATIVE ANALYSIS -
+- RETENTIONRANGE -----
+-- retentionRange = retention times that curve lies between
+-- selectTIC = range of TIC that is in retention_range
+-- selectAUC = area under TIC curve within retentionRange (1 isomer)
+>> FROM MERGING -
+-- simScore = similarity score
+-- spectra = replaced with merged spectra

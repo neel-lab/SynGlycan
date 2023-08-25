@@ -1,0 +1,37 @@
+function [SGPList_Ele,SGPList_Comp,SGPList_Avg] = glyEleComp(SGPList)
+SGPList_Ele = cell(length(SGPList),1);
+SGPList_Comp = zeros(length(SGPList),5);
+SGPList_Avg = zeros(4,6);
+mass = [12.0107,1.00794,14.0067,15.9994,32.0650,1];
+h = [6, 10, 0, 5, 0];
+n = [8, 13, 1, 5, 0];
+s = [11, 17, 1, 8, 0];
+f = [6, 10, 0, 4, 0];
+chnos = zeros(5,5);
+for ii = 1:length(SGPList)
+   chnos(1,:) = SGPList{ii,2}.*h;
+   chnos(2,:) = SGPList{ii,3}.*n;
+   chnos(3,:) = SGPList{ii,4}.*s;
+   chnos(4,:) = SGPList{ii,5}.*f;
+   chnos(5,:) = sum(chnos);
+   chnos(5,2) = chnos(5,2)+1;
+   SGPList_Ele{ii} = chnos;
+   SGPList_Comp(ii,:) = chnos(5,:);
+   chnos = zeros(5,5);
+end
+h_avg = mean(cell2mat(SGPList(:,2)));
+n_avg = mean(cell2mat(SGPList(:,3)));
+s_avg = mean(cell2mat(SGPList(:,4)));
+f_avg = mean(cell2mat(SGPList(:,5)));
+tot_avg = mean(cell2mat(SGPList(:,6)));
+c = mean(SGPList_Comp(:,1));
+h = mean(SGPList_Comp(:,2));
+n = mean(SGPList_Comp(:,3));
+o = mean(SGPList_Comp(:,4));
+s = mean(SGPList_Comp(:,5));
+norm = (c+h+n+o+s);
+SGPList_Avg(1,:) = [h_avg,n_avg,s_avg,f_avg,tot_avg,0];
+SGPList_Avg(2,:) = [c,h,n,o,s,norm];
+SGPList_Avg(3,:) = [c/norm,h/norm,n/norm,o/norm,s/norm,norm/norm];
+SGPList_Avg(4,:) = SGPList_Avg(3,:)./mass;
+end

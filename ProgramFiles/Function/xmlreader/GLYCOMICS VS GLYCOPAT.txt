@@ -1,0 +1,7 @@
+FILE DIFFERENCES BETWEEN GLYCOMICS AND GLYCOPAT
+1. Preprocess - default values for "modeloptions"
+2. default_iso_dist - different for each, 5000 for glycomcis and 10000 for glycoproteomics
+3. customIsoDist - change chnos values
+4. getdefaultmonoisowdist - change chnos values
+5. quantitativeAnalysis - change chnos values
+6. Glycan Distribution - do not need for GlycoPAT

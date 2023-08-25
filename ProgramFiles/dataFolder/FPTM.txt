@@ -1,0 +1,13 @@
+% Comment lines start with '%' symbols
+% All encoding should be in ANSI (or Windows Notepad default)
+% Each data line contains three space-separated fields:
+% "Original A(mino)A(cid)" "position of AA (count from the beginning of protein seq.) where AA is modified (0 implies all possible positions, no restrictions)" "AA after modification"
+% correct examples:
+% C 0 C<i>  -- for Cys carboxymethylation using iodoacetamide
+% X 10,17 X<s>  -- sulfation at position 10 and 17 regardless of amino acid present
+% Y 10,17 Y<s>  -- sulfate Tyr (Y) at position 10 and 17, provided Tyr is present at these positions
+% incorrect examples 
+% Y 35,0 Y<s>  -- 35 is redundant since 0 aldeady exists and implies that all Tyr are modified
+% YC 0 YC<i> -- 2 amino acids as input cannot be recognized
+% Note: GlycoPAT 2.0 only supports "0" as modification position, support for specific modification position will be added in future release
+C 0 C<i>

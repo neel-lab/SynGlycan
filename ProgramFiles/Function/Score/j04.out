@@ -1,0 +1,19 @@
+SLURM_JOBID= 8226078
+SLURM_JOB_NODELIST= cpn-v11-21
+SLURM_NNODES=  1
+SLURMTMPDIR= /scratch/8226078
+working directory = /projects/academic/neel/kaicheng/HUPO
+Launch MATLAB job
+
+                                                                              < M A T L A B (R) >
+                                                                    Copyright 1984-2020 The MathWorks, Inc.
+                                                                R2020b Update 3 (9.9.0.1538559) 64-bit (glnxa64)
+                                                                               November 23, 2020
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 40).
+>> All Done!
