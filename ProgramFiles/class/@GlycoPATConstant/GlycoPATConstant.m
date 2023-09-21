@@ -52,7 +52,7 @@ classdef GlycoPATConstant
         KeepTopOglynum = 10000;
         
         fbi_nummmindiagionfragmode = 1;
-        fbi_diagnionlogic = 2;%1=and, 2=or
+        fbi_diagnionlogic = 1;%1=and, 2=or
         OGlyPepFDR = 0.01;
         
         N_Proceed_Override = true;

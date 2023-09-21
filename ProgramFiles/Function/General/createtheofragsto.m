@@ -1,7 +1,7 @@
 function alltheofrag = createtheofragsto(sgpcomp,fragmodes,scoreintdata)
 % CREATETHEOFRAGSTO: create theoretical fragments for input glycopeptides.
-%     This funciton is dedicated to browsers and single spectrum
-%     annotaiton, as high-throughput scoring requires higher efficiency
+%     This function is dedicated to browsers and single spectrum
+%     annotation, as high-throughput scoring requires higher efficiency
 %     code.
 %
 % Syntax:

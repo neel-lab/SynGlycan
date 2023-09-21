@@ -30,61 +30,52 @@ methodind_ETD = ismember(upper(analyzefragmode),'ETD');
 methodind_ETciD = ismember(upper(analyzefragmode),'ETCID');
 methodind_EThcD = ismember(upper(analyzefragmode),'ETHCD');
 
-displaydataind = displaydataind(searchrowind,:);
+displaydataind = displaydataind(searchrowind,:);            % scan numbers triggered by single precursor corresponding to each candidate hit, typicaly a SASSO row
 displaydataind_colCID = ismember(upper(colnames),'CID');
 displaydataind_colHCD = ismember(upper(colnames),'HCD');
 displaydataind_colETD = ismember(upper(colnames),'ETD');
 displaydataind_colETciD = ismember(upper(colnames),'ETCID');
 displaydataind_colEThcD = ismember(upper(colnames),'ETHCD');
-for ii = 1:size(displaydataind,1) %172 groups of scans
+for ii = 1:size(displaydataind,1) % 172 groups of scans
     %     if mod(ii,100) == 0
     %         waitbar(ii/size(displaydataind,1),wtbar);
     %     end
-    tempsgp = sgps{displaydataind(ii,1)};
+    tempsgp = sgps{displaydataind(ii,1)};                   % sgp identified in the first set of runs with unique glycans, i.e. 1_1 run
     tempscans = scans(displaydataind(ii,:));
     gpmw = result(displaydataind(ii,1)).Theo;
     [p,g_ori,m] = breakGlyPep(tempsgp);
-    glycan = g_ori.struct;
+    glycan = g_ori.struct;                                  % candidate_glycan identied in 1_1 corresponding to displaydataind
     rowind = find(ismember(glylib(:,1),glycan));
     if ~any(rowind)
         error('Isomer table misalignment');
     end
     isomers = glylib(rowind,:);
-    isomers = isomers(~cellfun(@isempty,isomers));
+    isomers = isomers(~cellfun(@isempty,isomers));          % identifies isomers corresponding to candidate_glycan
     bestisomers = '';
     outputtoresult = true;
-    if length(isomers) > 1
+    if length(isomers) > 1                                  % which of the isomers contain the special structural features that are present in the experimental spectrum
         %% SPECIAL STRUCT FEATURES
-        numspecialfeatures = 12;
+        numspecialfeatures = 13;
         structdetail_specialstruct = false(numspecialfeatures,length(isomers));
         sgpseq_specialstruct = cell(numspecialfeatures,1);
+        %         structdetail_corefuc (sgpseq_specialstruct{1})
+        %         structdetail_bisect  (sgpseq_specialstruct{2})
         sgpseq_specialstruct{3} = {'{n{f}{h}}','{n{h}{f}}'};  % Lewis-X
-        sgpseq_specialstruct{4} = {'{n{f}{h{s}}}','{n{h{s}}{f}}'}; % sialyl Lewis-X
-        sgpseq_specialstruct{5} = {'{n{h{s}}}'};  % sialylLacNAC
-        sgpseq_specialstruct{6} = {'{n{n}}'};  % diLacNAc
-        sgpseq_specialstruct{7} = {'{n{h{f}{n}}}','{n{h{n}{f}}}'};  %
-        sgpseq_specialstruct{8} = {'{n{h{f}{h}}}','{n{h{h}{f}}}'};
-        sgpseq_specialstruct{9} = {'{h{f}}'};  % blood gp.
-        sgpseq_specialstruct{10} = {'{n{f}{h{f}}}'};  % Lewis Y
-        sgpseq_specialstruct{11} = {'{n{f}{n}}','{n{n}{f}}'};
-        sgpseq_specialstruct{12} = {'{n{n{s}}}'};
+        sgpseq_specialstruct{4} = {'{n{f}{h{s}}}','{n{h{s}}{f}}','{n{f}}','{n{h{s}}}'}; % sialyl Lewis-X
+        sgpseq_specialstruct{5} = {'{n{h{s}}}','{s}'};        % terminal sialic acid
+        sgpseq_specialstruct{6} = {'{n{n}}'};                 % diLacNAc
+        sgpseq_specialstruct{7} = {'{h{f}{n}}','{h{n}{f}}'};  % bldgpA
+        sgpseq_specialstruct{8} = {'{h{f}{h}}','{h{h}{f}}'};  % bldgpB
+        sgpseq_specialstruct{9} = {'{h{f}}'};           % blood gp.
+        sgpseq_specialstruct{10} = {'{n{f}{h{f}}}'};    % Lewis Y/b
+        sgpseq_specialstruct{11} = {'{n{f}{n}}','{n{n}{f}}'};   % fucosylated diLacNAc
+        sgpseq_specialstruct{12} = {'{n{n{s}}}'};               % sialylated diLacNAc
+        sgpseq_specialstruct{13} = {'{h{h}}','{h{h{h}}}'};      % hybrid
 
-
-        %         structdetail_corefuc
-        %         structdetail_bisect
-        %         structdetail_LeX
-        %         structdetail_sLeX
-        %         structdetail_termsia
-        %         structdetail_diLacNAc
-        %         structdetail_bldgpA
-        %         structdetail_bldgpB
-        %         structdetail_bldgpO
-        %         structdetail_LewisY
-        %         structdetail_LewisX_LacdiNAc
-        %         structdetail_termsia_LacdiNAc
-        for jj = 1:length(isomers)
-            bondmap = getglycanbondmap(isomers{jj});
-            distance = getdistance(isomers{jj});
+        
+        for jj = 1:length(isomers)                      % This is to check if the candidate isomers sgp structure has diagnostic ions. If any exist then it is marked true, else false
+            bondmap = getglycanbondmap(isomers{jj});    % get connection table for glycan structure
+            distance = getdistance(isomers{jj});        % returns the distance from monosaccharide to reducing end
             monosac = regexp(isomers{jj},'[hnsf]','match');
             fdist = distance(strcmpi(monosac,'f'));
             ndist = distance(strcmpi(monosac,'n'));
@@ -166,6 +157,12 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                                 structdetail_specialstruct(kk,jj) = true;
                             end
                         end
+                    case 13
+                        for ll = 1:length(sgpseq_specialstruct{kk})
+                            if any(strfind(isomers{jj},sgpseq_specialstruct{kk}{ll}))
+                                structdetail_specialstruct(kk,jj) = true;
+                            end
+                        end
                 end
             end
         end
@@ -209,7 +206,7 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
         end
 
         %% PREPARE THEO FRAG ION
-        theofrag_EThcD_cofragsto = cell(length(isomers),1);
+        theofrag_EThcD_cofragsto = cell(length(isomers),1);         % one theoretical fragmentation list for each isomer and for each fragmentation mode
         theofrag_EThcD_glyonlysto = cell(length(isomers),1);
         theofrag_CIDsto = cell(length(isomers),1);
         theofrag_HCDsto = cell(length(isomers),1);
@@ -225,8 +222,8 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
         for jj = 1:length(isomers)
             thisisomerind = find(ismember(new_ptmseq,isomers{jj}));
             newprotid = str2num(result(displaydataind(ii,1)).ProteinID);
-            newprotid1 = newprotid(1:2);
-            newprotid2 = newprotid(3:end);
+            newprotid1 = newprotid(1:2);        % protein and peptide id
+            newprotid2 = newprotid(3:end);      % glycan ID
             for kk = 1:length(newprotid2)
                 if newprotid2(kk) == currentglyisomerid
                     newprotid2(kk) = thisisomerind;
@@ -234,13 +231,13 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                     %                     newprotid2(kk) = find(ismember(new_ptmseq,scoreintdata.ptmisomers{newprotid2(kk),1}));
                 end
             end
-            newprotid = [newprotid1,newprotid2];
+            newprotid = [newprotid1,newprotid2];        % protein, peptide id, glycan ID
             isomerProteinIDsto{jj} = newprotid;
             if isempty(new_ptmfragsto{1,thisisomerind})
                 [~,tempptmmass,~,...
                     tempptmtype,tempptmfragsto,tempptmfragstublen] = ...
                     theoptmfrag(isomers(jj),scoreoptions.fragnum(:,2),scoreoptions.analyzefragmode,...
-                    scoreoptions);
+                    scoreoptions);                                                      % fragment all PTM appeared in digested protein file
                 for kk = 1:size(scoreoptions.fragnum,1)
                     scoreintdata.ptmfragsto(kk,thisisomerind) = tempptmfragsto{kk,1};
                     scoreintdata.ptmfragstublen(kk,thisisomerind) = tempptmfragstublen{kk,1};
@@ -248,13 +245,13 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                 scoreintdata.ptmmass(thisisomerind) = tempptmmass;
                 scoreintdata.ptmtype(thisisomerind) = tempptmtype;
             end
-            temptheofrag = createtheofragsto({newprotid},colnames,scoreintdata);
+            temptheofrag = createtheofragsto({newprotid},colnames,scoreintdata);        % create theoretical fragments for input glycopeptides
             if any(displaydataind_colHCD)
                 theofrag_HCD = temptheofrag{1,displaydataind_colHCD};
                 for kk = 1:length(theofrag_HCD)
                     theofrag_HCD(kk).isomerind = jj;
                 end
-                theofrag_HCDsto{jj} = theofrag_HCD;
+                theofrag_HCDsto{jj} = theofrag_HCD;                                     % stores HCD fragmentation spectra for given isomer
             end
             if any(displaydataind_colCID)
                 theofrag_CID = temptheofrag{1,displaydataind_colCID};
@@ -319,7 +316,7 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             diag_1 = glypepMW(joinGlyPep(p,g_diag,m)) + 1.007825032;
             g_diag.struct = '{n{f}{n}}';
             diag_2 = glypepMW(joinGlyPep(p,g_diag,m)) + 1.007825032;
-            diagnosticmass_Y = [diagnosticmass_Y;diag_1;diag_2];
+            diagnosticmass_Y = [diagnosticmass_Y;diag_1;diag_2];        % write glycan mass for core Fucose
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;1;1];
             diagnosticmasscount_Y(1) = 2;
         end
@@ -328,18 +325,18 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             g_diag.struct = '{n{n{h{n}}}}';
             diag_1 = glypepMW(joinGlyPep(p,g_diag,m)) + 1.007825032;
             g_diag.struct = '{n{f}{n{h{n}}}}';
-            diag_2 = glypepMW(joinGlyPep(p,g_diag,m)) + 1.007825032;
+            diag_2 = glypepMW(joinGlyPep(p,g_diag,m)) + 1.007825032;    % write glycan mass for bisecting
             diagnosticmass_Y = [diagnosticmass_Y;diag_1;diag_2];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;2;2];
             diagnosticmasscount_Y(2) = 2;
         end
-        if any(structdetail_specialstruct(3,:))
+        if any(structdetail_specialstruct(3,:))                         % LeX/a
             diag_1 = glyMW('{n{f}{h}}') + 1.007825032 - 18.0105647;
-            diag_2 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
-            diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2];
-            diagnosticmasstyp_B = [diagnosticmasstyp_B;3;3];
-            diagnosticmasscount_B(3) = 2;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+%            diag_2 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
+            diagnosticmass_B = [diagnosticmass_B;diag_1];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;3];
+            diagnosticmasscount_B(3) = 1;
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;3];
             diagnosticmasscount_Y(3) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -347,14 +344,14 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;3;3];
             %             diagnosticmasscount_Y(3) = 2;
         end
-        if any(structdetail_specialstruct(4,:))
+        if any(structdetail_specialstruct(4,:))                         % sLeX/a 
             diag_1 = glyMW('{n{f}{h{s}}}') + 1.007825032 - 18.0105647;
             diag_2 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
             diag_3 = glyMW('{n{h{s}}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;4;4;4];
-            diagnosticmasscount_B(4) = 3;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmasscount_B(4) = 1;       % how many have to be found to say that the diagnostic ion exists
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;4];
             diagnosticmasscount_Y(4) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -363,13 +360,13 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;4;4;4];
             %             diagnosticmasscount_Y(4) = 3;
         end
-        if any(structdetail_specialstruct(5,:))
+        if any(structdetail_specialstruct(5,:))                     % terminal sialic acid
             diag_1 = glyMW('{s}') + 1.007825032 - 18.0105647;
             diag_2 = glyMW('{n{h{s}}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;5;5];
-            diagnosticmasscount_B(5) = 2;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - gpmw - diag_2 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmasscount_B(5) = 1;
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;5];
             diagnosticmasscount_Y(5) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -377,11 +374,11 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;5;5];
             %             diagnosticmasscount_Y(5) = 2;
         end
-        if any(structdetail_specialstruct(6,:))
+        if any(structdetail_specialstruct(6,:))                     % LacdiNAc
             diag_1 = glyMW('{n{n}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;6];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;6];
             diagnosticmasscount_B(6) = 1;
             diagnosticmasscount_Y(6) = 1;
@@ -409,41 +406,39 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Ylacdinac = [diagnosticmasstyp_Ylacdinac;ones(size(tempdiagnosticmass_Ylacdinac)) * 6];
             %             diagnosticmasscount_Ylacdinac(6) = length(tempdiagnosticmass_Ylacdinac);
         end
-        if any(structdetail_specialstruct(7,:))
+        if any(structdetail_specialstruct(7,:))                 % blood gp A
             diag_1 = glyMW('{n{h{f}{n}}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;7];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;7];
             diagnosticmasscount_B(7) = 1;
             diagnosticmasscount_Y(7) = 1;
         end
-        if any(structdetail_specialstruct(8,:))
+        if any(structdetail_specialstruct(8,:))             % blood gp B
             diag_1 = glyMW('{h{f}{h}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;8];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;8];
             diagnosticmasscount_B(8) = 1;
             diagnosticmasscount_Y(8) = 1;
         end
-        if any(structdetail_specialstruct(9,:))
+        if any(structdetail_specialstruct(9,:))             % blood gp O 
             diag_1 = glyMW('{h{f}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;9];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;9];
             diagnosticmasscount_B(9) = 1;
             diagnosticmasscount_Y(9) = 1;
         end
-        if any(structdetail_specialstruct(10,:))
+        if any(structdetail_specialstruct(10,:))            % Lewis-Y/b
             diag_1 = glyMW('{n{f}{h{f}}}') + 1.007825032 - 18.0105647;
-            diag_2 = glyMW('{n{f}{h}}') + 1.007825032 - 18.0105647;
-            diag_3 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
-            diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3];
-            diagnosticmasstyp_B = [diagnosticmasstyp_B;10;10;10];
-            diagnosticmasscount_B(10) = 3;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmass_B = [diagnosticmass_B;diag_1];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;10];
+            diagnosticmasscount_B(10) = 1;
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;10];
             diagnosticmasscount_Y(10) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -452,14 +447,12 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;10;10;10];
             %             diagnosticmasscount_Y(10) = 3;
         end
-        if any(structdetail_specialstruct(11,:))
+        if any(structdetail_specialstruct(11,:))        % Fucosylated LacdiNAc
             diag_1 = glyMW('{n{f}{n}}') + 1.007825032 - 18.0105647;
-            diag_2 = glyMW('{n{n}}') + 1.007825032 - 18.0105647;
-            diag_3 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3];
-            diagnosticmasstyp_B = [diagnosticmasstyp_B;11;11;11];
-            diagnosticmasscount_B(11) = 3;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;11];
+            diagnosticmasscount_B(11) = 1;
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;11];
             diagnosticmasscount_Y(11) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -468,15 +461,12 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;11;11;11];
             %             diagnosticmasscount_Y(11) = 3;
         end
-        if any(structdetail_specialstruct(12,:))
+        if any(structdetail_specialstruct(12,:))        % Sialylated LacdiNAc
             diag_1 = glyMW('{n{n{s}}}') + 1.007825032 - 18.0105647;
-            diag_2 = glyMW('{n{n}}') + 1.007825032 - 18.0105647;
-            diag_3 = glyMW('{n{s}}') + 1.007825032 - 18.0105647;
-            diag_4 = glyMW('{s}') + 1.007825032 - 18.0105647;
-            diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3;diag_4];
-            diagnosticmasstyp_B = [diagnosticmasstyp_B;12;12;12;12];
-            diagnosticmasscount_B(12) = 4;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647)];
+            diagnosticmass_B = [diagnosticmass_B;diag_1];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;12];
+            diagnosticmasscount_B(12) = 1;
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;12];
             diagnosticmasscount_Y(12) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -486,11 +476,21 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             %             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;12;12;12;12];
             %             diagnosticmasscount_Y(12) = 4;
         end
+        if any(structdetail_specialstruct(13,:))        % hybrid
+            diag_1 = glyMW('{h{h{h}}}') + 1.007825032 - 18.0105647;
+            diag_2 = glyMW('{h{h}}') + 1.007825032 - 18.0105647;
+            diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;13,13];
+            diagnosticmasscount_B(13) = 1;
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmasstyp_Y = [diagnosticmasstyp_Y;13];
+            diagnosticmasscount_Y(13) = 1;
+        end
         if ~isempty(diagnosticmass_B)
             if any(methodind_CID)
                 found_specialstruct_CID = false(numspecialfeatures,1);
                 diagmatch_CID_B = calcithscore(spectrumCID,diagnosticmass_B,1,...
-                    ms2tol(methodind_CID),ms2tolunit{methodind_CID},3,struct('maxlag',1,'selectpeak',[]));
+                    ms2tol(methodind_CID),ms2tolunit{methodind_CID},3,struct('maxlag',1,'selectpeak',[]));   % match theoretical fragments to experimental data.
                 diagmatch_CID_Y = calcithscore(spectrumCID,diagnosticmass_Y,chgCID,...
                     ms2tol(methodind_CID),ms2tolunit{methodind_CID},3,struct('maxlag',1,'selectpeak',[]));
                 %                 diagmatch_CID_Blacdinac = calcithscore(spectrumCID,diagnosticmass_Blacdinac,1,...
@@ -512,8 +512,8 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                             % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion_B = diagnosticmasstyp_B(logical(diagmatch_CID_B.ionmatchindex)) == jj;
                             featurefoundbydiagion_Y = diagnosticmasstyp_Y(logical(diagmatch_CID_Y.ionmatchindex)) == jj;
-                            if (sum(featurefoundbydiagion_B) == diagnosticmasscount_B(jj)) && ...
-                                    (sum(featurefoundbydiagion_Y) == diagnosticmasscount_Y(jj)) % found feature 1~9
+                            if (sum(featurefoundbydiagion_B) >= diagnosticmasscount_B(jj)) && ...
+                                    (sum(featurefoundbydiagion_Y) >= diagnosticmasscount_Y(jj)) % found feature 1~9
                                 found_specialstruct_CID(jj) = true;
                             end
                         end
@@ -552,29 +552,17 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                 %                 matcheddiagiontyp_HCD_Blacdinac = logical(diagmatch_HCD_Blacdinac.ionmatchindex);
                 %                 matcheddiagiontyp_HCD_Ylacdinac = logical(diagmatch_HCD_Ylacdinac.ionmatchindex);
                 for jj = 1:numspecialfeatures
-                    if diagionlogicandor == 1
-                        %                         if jj == 6
-                        %                             featurefoundbydiagion = matcheddiagiontyp_HCD_Blacdinac & matcheddiagiontyp_HCD_Ylacdinac;
-                        %                             if sum(featurefoundbydiagion) ==  diagnosticmasscount_Blacdinac(6) % found feature 1~9
-                        %                                 found_specialstruct_HCD(jj) = true;
-                        %                             end
+                    if diagionlogicandor == 1   % AND
                         if any(structdetail_specialstruct(jj,:) == 1)
-                            % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion_B = diagnosticmasstyp_B(logical(diagmatch_HCD_B.ionmatchindex)) == jj;
                             featurefoundbydiagion_Y = diagnosticmasstyp_Y(logical(diagmatch_HCD_Y.ionmatchindex)) == jj;
-                            if (sum(featurefoundbydiagion_B) == diagnosticmasscount_B(jj)) && ...
-                                    (sum(featurefoundbydiagion_Y) == diagnosticmasscount_Y(jj)) % found feature 1~9
+                            if (sum(featurefoundbydiagion_B) >= diagnosticmasscount_B(jj)) && ...
+                                    (sum(featurefoundbydiagion_Y) >= diagnosticmasscount_Y(jj)) % found feature 1~9
                                 found_specialstruct_HCD(jj) = true;
                             end
                         end
-                    elseif diagionlogicandor == 2
-                        %                         if jj == 6
-                        %                             featurefoundbydiagion = matcheddiagiontyp_HCD_Blacdinac & matcheddiagiontyp_HCD_Ylacdinac;
-                        %                             if any(featurefoundbydiagion)  % found feature 1~9
-                        %                                 found_specialstruct_HCD(jj) = true;
-                        %                             end
+                    elseif diagionlogicandor == 2   % OR
                         if any(structdetail_specialstruct(jj,:) == 1)
-                            % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion = matcheddiagiontyp_HCD == jj;
                             if any(featurefoundbydiagion)  % found feature 1~9
                                 found_specialstruct_HCD(jj) = true;
@@ -609,20 +597,14 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                         %                                 found_specialstruct_EThcD(jj) = true;
                         %                             end
                         if any(structdetail_specialstruct(jj,:) == 1)
-                            % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion_B = diagnosticmasstyp_B(logical(diagmatch_EThcD_B.ionmatchindex)) == jj;
                             featurefoundbydiagion_Y = diagnosticmasstyp_Y(logical(diagmatch_EThcD_Y.ionmatchindex)) == jj;
-                            if (sum(featurefoundbydiagion_B) == diagnosticmasscount_B(jj)) && ...
-                                    (sum(featurefoundbydiagion_Y) == diagnosticmasscount_Y(jj)) % found feature 1~9
+                            if (sum(featurefoundbydiagion_B) >= diagnosticmasscount_B(jj)) && ...
+                                    (sum(featurefoundbydiagion_Y) >= diagnosticmasscount_Y(jj)) % found feature 1~9
                                 found_specialstruct_EThcD(jj) = true;
                             end
                         end
                     elseif diagionlogicandor == 2
-                        %                         if jj == 6
-                        %                             featurefoundbydiagion = matcheddiagiontyp_EThcD_Blacdinac & matcheddiagiontyp_EThcD_Ylacdinac;
-                        %                             if any(featurefoundbydiagion)  % found feature 1~9
-                        %                                 found_specialstruct_EThcD(jj) = true;
-                        %                             end
                         if any(structdetail_specialstruct(jj,:) == 1)
                             % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion = matcheddiagiontyp_EThcD == jj;
@@ -643,36 +625,20 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                     ms2tol(methodind_ETciD),ms2tolunit{methodind_ETciD},3,struct('maxlag',1,'selectpeak',[]));
                 diagmatch_ETciD_Y = calcithscore(spectrumETciD,diagnosticmass_Y,chgETciD,...
                     ms2tol(methodind_ETciD),ms2tolunit{methodind_ETciD},3,struct('maxlag',1,'selectpeak',[]));
-                %                 diagmatch_ETciD_Blacdinac = calcithscore(spectrumETciD,diagnosticmass_Blacdinac,1,...
-                %                     ms2tol(methodind_ETciD),ms2tolunit{methodind_ETciD},3,struct('maxlag',1,'selectpeak',[]));
-                %                 diagmatch_ETciD_Ylacdinac = calcithscore(spectrumETciD,diagnosticmass_Ylacdinac,1,...
-                %                     ms2tol(methodind_ETciD),ms2tolunit{methodind_ETciD},3,struct('maxlag',1,'selectpeak',[]));
                 matcheddiagiontyp_ETciD = [diagnosticmasstyp_B(logical(diagmatch_ETciD_B.ionmatchindex));...
                     diagnosticmasstyp_Y(logical(diagmatch_ETciD_Y.ionmatchindex))];
-                %                 matcheddiagiontyp_ETciD_Blacdinac = logical(diagmatch_ETciD_Blacdinac.ionmatchindex);
-                %                 matcheddiagiontyp_ETciD_Ylacdinac = logical(diagmatch_ETciD_Ylacdinac.ionmatchindex);
                 for jj = 1:numspecialfeatures
                     if diagionlogicandor == 1
-                        %                         if jj == 6
-                        %                             featurefoundbydiagion = matcheddiagiontyp_ETciD_Blacdinac & matcheddiagiontyp_ETciD_Ylacdinac;
-                        %                             if sum(featurefoundbydiagion) ==  diagnosticmasscount_Blacdinac(6) % found feature 1~9
-                        %                                 found_specialstruct_ETciD(jj) = true;
-                        %                             end
                         if any(structdetail_specialstruct(jj,:) == 1)
                             % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion_B = diagnosticmasstyp_B(logical(diagmatch_ETciD_B.ionmatchindex)) == jj;
                             featurefoundbydiagion_Y = diagnosticmasstyp_Y(logical(diagmatch_ETciD_Y.ionmatchindex)) == jj;
-                            if (sum(featurefoundbydiagion_B) == diagnosticmasscount_B(jj)) && ...
-                                    (sum(featurefoundbydiagion_Y) == diagnosticmasscount_Y(jj)) % found feature 1~9
+                            if (sum(featurefoundbydiagion_B) >= diagnosticmasscount_B(jj)) && ...
+                                    (sum(featurefoundbydiagion_Y) >= diagnosticmasscount_Y(jj)) % found feature 1~9
                                 found_specialstruct_ETciD(jj) = true;
                             end
                         end
                     elseif diagionlogicandor == 2
-                        %                         if jj == 6
-                        %                             featurefoundbydiagion = matcheddiagiontyp_ETciD_Blacdinac & matcheddiagiontyp_ETciD_Ylacdinac;
-                        %                             if any(featurefoundbydiagion)  % found feature 1~9
-                        %                                 found_specialstruct_ETciD(jj) = true;
-                        %                             end
                         if any(structdetail_specialstruct(jj,:) == 1)
                             % mixed - isomer may or maynot has struct feature
                             featurefoundbydiagion = matcheddiagiontyp_ETciD == jj;
@@ -729,7 +695,7 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
             theofrag_EThcD_glyonlysto = theofrag_EThcD_glyonlysto(isomerkeepind);
             theofrag_CIDsto = theofrag_CIDsto(isomerkeepind);
             theofrag_ETciDsto = theofrag_ETciDsto(isomerkeepind);
-            isomerProteinIDsto = isomerProteinIDsto(isomerkeepind);
+            isomerProteinIDsto = isomerProteinIDsto(isomerkeepind);                 % This just stores the IDs for protein and glycans for later use
             for jj = 1:length(isomers)
                 [theofrag_HCDsto{jj}.isomerind] = deal(jj);
                 [theofrag_EThcD_cofragsto{jj}.isomerind] = deal(jj);
@@ -1278,7 +1244,7 @@ for ii = 1:size(displaydataind,1) %172 groups of scans
                             theofrag_HCD,isomericglypepprotid,scanHCD,...
                             tempresult_HCD.Expt,tempresult_HCD.Mono,tempresult_HCD.Retime,spectrumHCD,chgHCD,...
                             scoreoptions.ms2tol(methodind),scoreoptions.ms2tolunit{methodind},'HCD',scoreintdata.sliminput.fragnum,tempresult_HCD.MDiff,...
-                            tempresult_HCD.Quant,tempresult_HCD.Protein,struct('maxlag',scoreoptions.maxlag,'selectpeak',[],'proceed_override',true));
+                            tempresult_HCD.Quant,tempresult_HCD.Protein,struct('maxlag',scoreoptions.maxlag,'selectpeak',[],'proceed_override',true));   % get the score for 1 spectrum vs 1 candidate for 1 fragmentation mode
                     end
                     %% CID
                     if any(displaydataind_colCID)
