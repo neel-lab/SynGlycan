@@ -31,7 +31,9 @@ function [defaultmimz,theomassdist,decision] = getdefaultmonoisowdist(precscannu
 % chnos: 1 x 5 numerical array. User custom averagine model.
 %
 % Output:
-%   modified msdata structure
+%   defaultmimz: monoisotopic m/z that is consensus resilt
+%   theomassdist: theoretical mass distributin
+%   decision: rationale for the decision made ('A/B/C')
 %
 % Examples:
 %   [defaultmimz,theomassdist] = getdefaultmonoisowdist(1569,759.1735,3,msdata.scannum,msdata.retime,msdata.mslevel,msdata.spectra,default_iso_dist,1,1,[])
@@ -130,7 +132,11 @@ if idx ~= 0 % if the precursor m/z is 0
     if go_ahead
         % method A -  CLASSIC XCORR (FOR SIGNAL STRENGTH >= 10%)
         expsmplA = expsmpl;
-        expsmplA(expsmpl(:,2) < 0.1 * max(expsmpl(:,2)),2) = 0;
+        if mass<4000
+            expsmplA(expsmpl(:,2) < 0.1 * max(expsmpl(:,2)),2) = 0;
+        else
+            expsmplA(expsmpl(:,2) < 0.05 * max(expsmpl(:,2)),2) = 0;
+        end
         expandtheoisoA = expandtheoiso;
         expandtheoisoA(expandtheoiso(:,2) < 0.1 * max(expandtheoiso(:,2)),2) = 0;
         [a,b] = xcorr(expsmplA(:,2),expandtheoisoA(:,2),size(expandtheoisoA,1),'normalized');

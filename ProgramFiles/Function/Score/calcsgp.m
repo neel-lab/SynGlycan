@@ -2,6 +2,7 @@ function isomericglypepresult = calcsgp(result,sgps,scans,displaydataind,allspec
     denoisingoptHCD,denoisingoptCID,denoisingoptETD,denoisingoptETciD,denoisingoptEThcD,...
     scoreintdata,allfragments,searchrowind,options)
 % wtbar = waitbar(0,'Calculating');
+ct=0;
 sectionsize = 9000;
 isomericresult = [];
 tempresult = cell(sectionsize,30);
@@ -61,7 +62,8 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
         %         structdetail_corefuc (sgpseq_specialstruct{1})
         %         structdetail_bisect  (sgpseq_specialstruct{2})
         sgpseq_specialstruct{3} = {'{n{f}{h}}','{n{h}{f}}'};  % Lewis-X
-        sgpseq_specialstruct{4} = {'{n{f}{h{s}}}','{n{h{s}}{f}}','{n{f}}','{n{h{s}}}'}; % sialyl Lewis-X
+        %sgpseq_specialstruct{4} = {'{n{f}{h{s}}}','{n{h{s}}{f}}','{n{f}}','{n{h{s}}}'}; % sialyl Lewis-X
+        sgpseq_specialstruct{4} = {'{n{f}{h{s}}}','{n{h{s}}{f}}'}; % sialyl Lewis-X
         sgpseq_specialstruct{5} = {'{n{h{s}}}','{s}'};        % terminal sialic acid
         sgpseq_specialstruct{6} = {'{n{n}}'};                 % diLacNAc
         sgpseq_specialstruct{7} = {'{h{f}{n}}','{h{n}{f}}'};  % bldgpA
@@ -328,7 +330,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diag_2 = glypepMW(joinGlyPep(p,g_diag,m)) + 1.007825032;    % write glycan mass for bisecting
             diagnosticmass_Y = [diagnosticmass_Y;diag_1;diag_2];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;2;2];
-            diagnosticmasscount_Y(2) = 2;
+            diagnosticmasscount_Y(2) = 1;
         end
         if any(structdetail_specialstruct(3,:))                         % LeX/a
             diag_1 = glyMW('{n{f}{h}}') + 1.007825032 - 18.0105647;
@@ -336,7 +338,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;3];
             diagnosticmasscount_B(3) = 1;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;3];
             diagnosticmasscount_Y(3) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -346,12 +348,14 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
         end
         if any(structdetail_specialstruct(4,:))                         % sLeX/a 
             diag_1 = glyMW('{n{f}{h{s}}}') + 1.007825032 - 18.0105647;
-            diag_2 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
-            diag_3 = glyMW('{n{h{s}}}') + 1.007825032 - 18.0105647;
-            diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3];
-            diagnosticmasstyp_B = [diagnosticmasstyp_B;4;4;4];
+%            diag_2 = glyMW('{n{f}}') + 1.007825032 - 18.0105647;
+%            diag_3 = glyMW('{n{h{s}}}') + 1.007825032 - 18.0105647;
+%            diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3];
+%            diagnosticmasstyp_B = [diagnosticmasstyp_B;4;4;4];
+            diagnosticmass_B = [diagnosticmass_B;diag_1];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;4];
             diagnosticmasscount_B(4) = 1;       % how many have to be found to say that the diagnostic ion exists
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;4];
             diagnosticmasscount_Y(4) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -366,7 +370,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;5;5];
             diagnosticmasscount_B(5) = 1;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;5];
             diagnosticmasscount_Y(5) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -378,7 +382,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diag_1 = glyMW('{n{n}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;6];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;6];
             diagnosticmasscount_B(6) = 1;
             diagnosticmasscount_Y(6) = 1;
@@ -410,7 +414,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diag_1 = glyMW('{n{h{f}{n}}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;7];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;7];
             diagnosticmasscount_B(7) = 1;
             diagnosticmasscount_Y(7) = 1;
@@ -419,7 +423,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diag_1 = glyMW('{h{f}{h}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;8];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;8];
             diagnosticmasscount_B(8) = 1;
             diagnosticmasscount_Y(8) = 1;
@@ -428,7 +432,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diag_1 = glyMW('{h{f}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;9];
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;9];
             diagnosticmasscount_B(9) = 1;
             diagnosticmasscount_Y(9) = 1;
@@ -438,7 +442,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;10];
             diagnosticmasscount_B(10) = 1;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;10];
             diagnosticmasscount_Y(10) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -452,7 +456,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2;diag_3];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;11];
             diagnosticmasscount_B(11) = 1;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;11];
             diagnosticmasscount_Y(11) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -466,7 +470,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diagnosticmass_B = [diagnosticmass_B;diag_1];
             diagnosticmasstyp_B = [diagnosticmasstyp_B;12];
             diagnosticmasscount_B(12) = 1;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;12];
             diagnosticmasscount_Y(12) = 1;
             %             diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*(1.007825032 - 18.0105647);...
@@ -480,9 +484,9 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
             diag_1 = glyMW('{h{h{h}}}') + 1.007825032 - 18.0105647;
             diag_2 = glyMW('{h{h}}') + 1.007825032 - 18.0105647;
             diagnosticmass_B = [diagnosticmass_B;diag_1;diag_2];
-            diagnosticmasstyp_B = [diagnosticmasstyp_B;13,13];
+            diagnosticmasstyp_B = [diagnosticmasstyp_B;13;13];
             diagnosticmasscount_B(13) = 1;
-            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032 - 18.0105647];
+            diagnosticmass_Y = [diagnosticmass_Y;gpmw - diag_1 + 2*1.007825032];
             diagnosticmasstyp_Y = [diagnosticmasstyp_Y;13];
             diagnosticmasscount_Y(13) = 1;
         end
@@ -576,7 +580,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
         end
         if ~isempty(diagnosticmass_B)
             if any(methodind_EThcD)
-                found_specialstruct_EThcD_B = false(numspecialfeatures,1);
+                found_specialstruct_EThcD = false(numspecialfeatures,1);
                 diagmatch_EThcD_B = calcithscore(spectrumEThcD,diagnosticmass_B,1,...
                     ms2tol(methodind_EThcD),ms2tolunit{methodind_EThcD},3,struct('maxlag',1,'selectpeak',[]));
                 diagmatch_EThcD_Y = calcithscore(spectrumEThcD,diagnosticmass_Y,chgEThcD,...
@@ -616,7 +620,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
                 end
             end
         else
-            found_specialstruct_EThcD_B = true(numspecialfeatures,1);
+            found_specialstruct_EThcD = true(numspecialfeatures,1);
         end
         if ~isempty(diagnosticmass_B)
             if any(methodind_ETciD)
@@ -652,7 +656,7 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
         else  % no feature to be found
             found_specialstruct_ETciD = true(numspecialfeatures,1);
         end
-        found_specialstruct_ETD = true(numspecialfeatures,1);
+        found_specialstruct_ETD = true(numspecialfeatures,1);   % not used since we are not setup for ETD
         isomerkeepind = false(size(isomers));
         isomerhasstructfeatures = any(any(structdetail_specialstruct));
         if isomerhasstructfeatures  % any isomer has structfeatures
@@ -666,10 +670,10 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
                         found_specialstruct = found_specialstruct + double(found_specialstruct_HCD);
                     end
                     if any(displaydataind_colEThcD)
-                        found_specialstruct = found_specialstruct + double(found_specialstruct_EThcD_B);
+                        found_specialstruct = found_specialstruct + double(found_specialstruct_EThcD);
                     end
                     if any(displaydataind_colETciD)
-                        found_specialstruct = found_specialstruct + double(found_specialstruct_ETciD_B);
+                        found_specialstruct = found_specialstruct + double(found_specialstruct_ETciD);
                     end
                     keepthisisomer = ~xor(structdetail_specialstruct(:,jj),...
                         structdetail_specialstruct(:,jj) & (found_specialstruct >= nummindiagionfragmode));  % feature found
@@ -683,12 +687,17 @@ for ii = 1:size(displaydataind,1) % 172 groups of scans
                 % above operation keeps only those without any
                 % structfeatures
             end
-        else  % no isomer has structfeatures
+            if ~any(isomerkeepind)      % if no isomers are found then keep all
+                isomerkeepind = true(size(isomers));
+            end
+        else  % no isomer has structfeatures, then keep all isomers
             isomerkeepind = true(size(isomers));
         end
         isomers = isomers(isomerkeepind);
         if isempty(isomers)
             outputtoresult = false;
+            ct=ct+1;
+            ii, ct
         else
             theofrag_HCDsto = theofrag_HCDsto(isomerkeepind);
             theofrag_EThcD_cofragsto = theofrag_EThcD_cofragsto(isomerkeepind);
