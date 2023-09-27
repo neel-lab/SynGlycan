@@ -70,7 +70,7 @@ if idx ~= 0 % if the precursor m/z is 0
         spectra(ind:ind + spectrasize(i) - 1,:) = double(spectrain{i});
         ind = ind + spectrasize(i);
     end
-    
+
     spectrumout = spectra(spectra(:,2) > 0,:); % keep only spectra that is not empty
     spectrumsectionind = ((spectrumout(:,1) - mz) <= 5/chg) & ((spectrumout(:,1) - mz) >= -3.1/chg); % section of spectra that is within tolerance of precursor m/z
     spectrumsection = spectrumout(spectrumsectionind,:);  % consider chg >= 2, 3 Da off monoiso max
@@ -119,10 +119,10 @@ if idx ~= 0 % if the precursor m/z is 0
             expsmpl(j,2) = max(spectrumsection(tempind,2));
         end
     end
-%     expsmplX = expsmpl;
-%     expsmplX(expsmplX(:,2) < 0.1 * max(expsmplX(:,2)),2) = 0;
-%     [~,ind] = sort(expsmplX(:,2),'descend');
-%     expsmplXmz = diff(sort(expsmplX(ind(1:4),1)));
+    %     expsmplX = expsmpl;
+    %     expsmplX(expsmplX(:,2) < 0.1 * max(expsmplX(:,2)),2) = 0;
+    %     [~,ind] = sort(expsmplX(:,2),'descend');
+    %     expsmplXmz = diff(sort(expsmplX(ind(1:4),1)));
     %     if max(expsmplXmz) - min(expsmplXmz) > 0.1
     %         go_ahead = false;
     %     else
@@ -132,13 +132,13 @@ if idx ~= 0 % if the precursor m/z is 0
     if go_ahead
         % method A -  CLASSIC XCORR (FOR SIGNAL STRENGTH >= 10%)
         expsmplA = expsmpl;
-        if mass<4000
+        if mass<3000
             expsmplA(expsmpl(:,2) < 0.1 * max(expsmpl(:,2)),2) = 0;
         else
             expsmplA(expsmpl(:,2) < 0.05 * max(expsmpl(:,2)),2) = 0;
         end
         expandtheoisoA = expandtheoiso;
-        expandtheoisoA(expandtheoiso(:,2) < 0.1 * max(expandtheoiso(:,2)),2) = 0;
+        expandtheoisoA(expandtheoiso(:,2) < 0.05 * max(expandtheoiso(:,2)),2) = 0;
         [a,b] = xcorr(expsmplA(:,2),expandtheoisoA(:,2),size(expandtheoisoA,1),'normalized');
         [~,ind] = max(a);
         lagA = b(ind);
@@ -151,12 +151,16 @@ if idx ~= 0 % if the precursor m/z is 0
         else  % fix by looking at higher m/z
             defaultmimzA = mz;
         end
-        
+
         % method B - JUST TAKE THE LOWEST MZ
         expsmplB = expsmpl;
-        expsmplB(expsmpl(:,2) < 0.1 * max(expsmpl(:,2)),:) = [];
+        if mass<3000
+            expsmplB(expsmpl(:,2) < 0.1 * max(expsmpl(:,2)),:) = [];
+        else
+            expsmplB(expsmpl(:,2) < 0.03 * max(expsmpl(:,2)),:) = [];
+        end
         defaultmimzB = expsmplB(1,1);
-        
+
         % method C - TOP 4
         expsmplC = expsmpl;
         [~,ind] = sort(expsmplC(:,2),'descend');
@@ -190,7 +194,7 @@ if idx ~= 0 % if the precursor m/z is 0
             defaultmimz = defaultmimzA;
             decision = 'AC';
         end
-        
+
         if abs(defaultmimz - mz) < 0.1
             defaultmimz = mz;
         else

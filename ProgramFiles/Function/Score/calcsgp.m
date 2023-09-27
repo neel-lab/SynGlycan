@@ -1,6 +1,11 @@
 function isomericglypepresult = calcsgp(result,sgps,scans,displaydataind,allspectra,allscan,allchg,...
     denoisingoptHCD,denoisingoptCID,denoisingoptETD,denoisingoptETciD,denoisingoptEThcD,...
     scoreintdata,allfragments,searchrowind,options)
+% 'result' has filtered output from 1_1 file that contains only
+% combiES>0.4, and addition filter settings in GlycoPATConstant.m
+% 'scans' contains the HCD scans that are paired with CID and ETHCD using
+% SASSO
+% 'sgp' has SGP1.0 corresponding to the individual scans
 % wtbar = waitbar(0,'Calculating');
 ct=0;
 sectionsize = 9000;
