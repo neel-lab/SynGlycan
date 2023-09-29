@@ -43,7 +43,7 @@ function [defaultmimz,theomassdist,decision] = getdefaultmonoisowdist(precscannu
 theomassdist = [];
 defaultmimz = mz;
 decision = 'N/A';
-SearchConsecusiveMS1Scans = 6;
+SearchConsecusiveMS1Scans = 0;   % was previously 6 to scan the 6 following scans
 % If this value is set to ZERO, MS1 accumulation method is +/- 15 sec,
 % Otherwise (value is integer and > 0), MS1 accumulation method is parent
 % scan plus next N scans (SearchConsecusiveMS1Scans = N)
