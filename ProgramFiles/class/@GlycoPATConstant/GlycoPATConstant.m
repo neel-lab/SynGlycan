@@ -44,7 +44,7 @@ classdef GlycoPATConstant
         
         % Peptide coverage defined as 
         Pepcovcutoff_analyzepresearchdata = 0.3;
-        Pepcovcutoff_fbi = 0.0;   % should change to 0.2 afterwards
+        Pepcovcutoff_fbi = 0.2;   % should change to 0.2 afterwards
         Pepcovcutoff_Oglysearch = 0.2; %Lowered to 0.2 on 12/08/2022
         
         TopNProt_Method5_analyzepresearchdata = 2;
